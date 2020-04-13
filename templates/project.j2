@@ -1,0 +1,43 @@
+server {
+	listen 80;
+	listen [::]:80;
+	client_max_body_size 30M;
+	root {{ project_folder }};
+
+	index index.html index.htm index.nginx-debian.html index.php;
+
+	server_name {{ domain }};
+
+	location / {
+        try_files $uri /index.php$is_args$args;
+	 fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+         include fastcgi_params;
+         index index.php index.html index.htm;
+         fastcgi_index index.php;
+         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+         fastcgi_param SCRIPT_NAME $fastcgi_script_name;
+	}
+
+   location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php7.2-fpm.sock;
+    }
+    location ~* \.(?:css|js|map|jpe?g|gif|png|ico)$ { }
+    location ~* \.(?:eot|woff2|woff|ttf|svg|pdf)$ { }
+
+    
+    location ~ \.css {
+    	add_header  Content-Type    text/css;
+	}
+	
+	location ~ \.js {
+    		add_header  Content-Type    application/x-javascript;
+	}
+
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+}
+

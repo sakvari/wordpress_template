@@ -1,0 +1,10 @@
+---
+project: "niuno"
+domain: "niuno.lumstondev.com"
+name_db: "wp_{{project}}"
+user_db: "daddy"
+password_db: "00aPLdpe9023fgGG"
+project_folder: "/var/www/html/{{project}}"
+project_folder_config: "/var/www/html/{{project}}/wp-config.php"
+project_folder_nginx: "/etc/nginx/sites-available/{{project}}"
+project_folder_nginx_enabled: "/etc/nginx/sites-enabled/{{project}}"

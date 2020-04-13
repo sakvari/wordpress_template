@@ -1,0 +1,72 @@
+---
+- hosts: wordpress
+  become: yes
+  vars_files:
+   - variables/vars.yml
+  tasks:
+  - name: Upgrade all packages to the latest version
+    apt:
+     upgrade: dist
+  - name: Install nginx and php7.2
+    apt: pkg={{ item }} state=latest update_cache=yes
+    with_items:
+    - nginx
+    - php7.2-cli
+    - php7.2-fpm
+    - php7.2-curl
+    - php7.2-gd
+    - php7.2-mbstring
+    - php7.2-mysql
+    - php7.2-soap
+    - php7.2-xml
+    - php7.2-zip
+    - php7.2-soap
+    - mysql-server
+    - mysql-client
+    - python-pip
+    - libmysqlclient-dev 
+    - python-dev
+    - python3
+    - unzip
+
+  - name: install pip MySQL-python
+    command: pip install MySQL-python
+
+  - name: Create a new database with name 'name_db' 
+    mysql_db:
+     name: wp_{{project}}
+     state: present
+
+  - name: Create user database with name in vars and password in vars with all database privileges
+    mysql_user:
+     name: "{{ user_db }}"
+     password: "{{ password_db }}"
+     priv: '*.*:ALL'
+     state: present
+  - name: Remove useless packages from the cache
+    apt:
+     autoclean: yes
+  - name: Unarchive a file that needs to be downloaded (added in 2.0)
+    unarchive:
+      src: https://wordpress.org/latest.zip
+      dest: /var/www/html/
+      remote_src: yes
+  - name: rename wordpress directory to project name
+    command: mv /var/www/html/wordpress {{ project_folder }}
+  - name: Ansible copy nginx config file to remote server
+    template:
+      src: templates/project.j2
+      dest: "{{ project_folder_nginx }}"
+  - name: symbolic link from sites-availables to sites-enabled
+    file:
+      src: "{{project_folder_nginx}}"
+      dest: "{{project_folder_nginx_enabled}}"
+      state: link
+  - name: change change proprietary folder to user www-data
+    command: chown -R www-data:www-data {{ project_folder  }}
+  - name: copy wp_config.j2
+    template:
+      src: templates/wp-config.j2
+      dest: "{{project_folder_config}}"
+  - name: reboot nginx 
+    service: name=nginx state=restarted 
